@@ -7,16 +7,16 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
-
 import { SharedElement } from 'react-navigation-shared-element';
+
 import { landmarks } from '../../services/data';
 import { Header } from '../../components/Header/Header';
 import { LandmarkCard } from '../../components/LandMarkCard/LandmarkCard';
 import { InfoCard } from '../../components/InfoCard/InfoCard';
 import { MainStack, RootStackParamList } from '../../routes/Route';
+import theme from '../../global/styles/theme';
 
 import { Container, LandmarkList } from './detail';
-import theme from '../../global/styles/theme';
 
 interface IDetail {
   navigation: MainStack;
