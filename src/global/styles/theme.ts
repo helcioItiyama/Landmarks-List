@@ -1,3 +1,7 @@
+import { Dimensions } from 'react-native';
+
+const { width } = Dimensions.get('window');
+
 export default {
   colors: {
     primary: '#2CCCD3',
@@ -17,8 +21,13 @@ export default {
     overlayBackground: '#BDD7D9',
   },
   fontFamily: {
-    regular: 'Roboto_400Regular', 
-    medium: 'Roboto_500Medium', 
-    bold: 'Roboto_700Bold'
+    regular: 'Roboto_400Regular',
+    medium: 'Roboto_500Medium',
+    bold: 'Roboto_700Bold',
+  },
+  layout: {
+    spacing: width * 0.04,
+    iconSize: width * 0.15,
+    iconSpacing: width * 0.015,
   },
 };

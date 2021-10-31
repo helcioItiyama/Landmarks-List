@@ -1,40 +1,50 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { FlatList, Animated } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import {
+  Animated,
+  FlatList,
+  Dimensions,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 
+import { SharedElement } from 'react-navigation-shared-element';
 import { landmarks } from '../../services/data';
 import { Header } from '../../components/Header/Header';
-import { MainStack, RootStackParamList } from '../../routes/Route';
 import { LandmarkCard } from '../../components/LandMarkCard/LandmarkCard';
-
-import { Container, Main, LandmarkList } from './detail';
 import { InfoCard } from '../../components/InfoCard/InfoCard';
-import { LandmarkDto } from '../../dtos/LandmarkDto';
-import { SharedElement } from 'react-navigation-shared-element';
+import { MainStack, RootStackParamList } from '../../routes/Route';
+
+import { Container, LandmarkList } from './detail';
+import theme from '../../global/styles/theme';
 
 interface IDetail {
   navigation: MainStack;
-  route: RouteProp<RootStackParamList, 'Detail'>
+  route: RouteProp<RootStackParamList, 'Detail'>;
 }
 
-function Detail({navigation, route}: IDetail) {
-  const [pickedLandmark, setPickedLandmark] = useState<LandmarkDto>({} as LandmarkDto);
-  
-  const {landmark} = route.params;
-  const landmarkRef = useRef(null);
-  const selectedItemIndex = landmarks.findIndex(each => each.id === landmark.id);
+const { width } = Dimensions.get('window');
+
+const Detail = ({ navigation, route }: IDetail) => {
+  const { landmark } = route.params;
+  const { iconSize, iconSpacing } = theme.layout;
+  const landmarkRef = useRef<FlatList>(null);
+  const selectedItemIndex = landmarks.findIndex(
+    each => each.id === landmark.id,
+  );
   const mountedAnimated = useRef(new Animated.Value(0)).current;
   const activeIndex = useRef(new Animated.Value(selectedItemIndex)).current;
-  const activeIndexAnimation = useRef(new Animated.Value(selectedItemIndex)).current;
+  const activeIndexAnimation = useRef(
+    new Animated.Value(selectedItemIndex),
+  ).current;
 
-  const animation = (toValue: number, delay: number) => (
+  const animation = (toValue: number, delay = 0) =>
     Animated.timing(mountedAnimated, {
       toValue,
       duration: 500,
       delay,
-      useNativeDriver:true,
-    })
-  )
+      useNativeDriver: true,
+    });
 
   useEffect(() => {
     Animated.parallel([
@@ -43,51 +53,103 @@ function Detail({navigation, route}: IDetail) {
         duration: 300,
         useNativeDriver: true,
       }),
-      animation(1, 1000),
+      animation(1, 500),
     ]).start();
-  }, [])
+  });
 
-  useEffect(() => {
-    setPickedLandmark(landmark);
-  }, []);
+  const size = iconSize + iconSpacing * 2;
 
-  const goBack = () => {
-    navigation.goBack()
-  }
+  const translateY = mountedAnimated.interpolate({
+    inputRange: [0, 1],
+    outputRange: [50, 0],
+  });
 
-  const onPressLandmark = (item: LandmarkDto) => {
-    setPickedLandmark(item);
-  }
+  const translateX = activeIndexAnimation.interpolate({
+    inputRange: [-1, 0, 1],
+    outputRange: [size, 0, -size],
+  });
+
+  const handleChangeIndex = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ) => {
+    const newIndex = Math.floor(
+      event.nativeEvent.contentOffset.x / (width - iconSpacing),
+    );
+    activeIndex.setValue(newIndex);
+  };
+
+  const renderLandmarks = () => {
+    if (landmarks.length) {
+      return landmarks.map((land, index) => {
+        const inputRange = [index - 1, index, index + 1];
+        const opacity = activeIndexAnimation.interpolate({
+          inputRange,
+          outputRange: [0.3, 1, 0.3],
+          extrapolate: 'clamp',
+        });
+        return (
+          <SharedElement key={land.id} id={`item.${land.id}.icon`}>
+            <Animated.View style={{ opacity }}>
+              <LandmarkCard
+                onPress={() => {
+                  activeIndex.setValue(index);
+                  landmarkRef?.current?.scrollToIndex({
+                    index,
+                    animated: true,
+                  });
+                }}
+                landmark={land}
+              />
+            </Animated.View>
+          </SharedElement>
+        );
+      });
+    }
+    return null;
+  };
 
   return (
     <Container>
       <Header
-        onBackButtonPress={goBack}
-        title={'LANDMARKS INFORMATION'}
+        onBackButtonPress={() => {
+          animation(0).start(() => {
+            navigation.goBack();
+          });
+        }}
+        title="LANDMARKS INFORMATION"
       />
-      <Main>
-        <LandmarkList>
-        <FlatList
-          ref={landmarkRef}
-          data={landmarks}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={item => item.id}
-          renderItem={({item}) => (
-            <SharedElement id={`item.${item.id}.icon`}>
-              <LandmarkCard landmark={item} {...{onPressLandmark, pickedLandmark}}/>
-            </SharedElement>
-          )}
-        />
-        <InfoCard info={pickedLandmark}/>
-        </LandmarkList>
-      </Main>
+      <LandmarkList
+        length={landmarks.length}
+        style={{
+          marginLeft: width / 2 - iconSize / 2 - iconSpacing,
+          transform: [{ translateX }],
+        }}
+      >
+        {renderLandmarks()}
+      </LandmarkList>
+      <Animated.FlatList
+        ref={landmarkRef}
+        data={landmarks}
+        style={{ opacity: mountedAnimated, transform: [{ translateY }] }}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        pagingEnabled
+        initialScrollIndex={selectedItemIndex}
+        onMomentumScrollEnd={handleChangeIndex}
+        keyExtractor={item => item.id}
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+        renderItem={({ item }) => <InfoCard info={item} />}
+      />
     </Container>
   );
-}
+};
 
 Detail.sharedElements = () => {
-  return landmarks.map(item => `item.${item.id}.icon`)
-}
+  return landmarks.map(item => `item.${item.id}.icon`);
+};
 
 export default Detail;

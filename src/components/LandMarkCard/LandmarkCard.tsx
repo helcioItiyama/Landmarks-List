@@ -6,14 +6,16 @@ import { Container, Image } from './landmarkCard';
 
 interface ILandmarkCard {
   landmark: LandmarkDto;
-  pickedLandmark?: LandmarkDto;
-  onPressLandmark: (item: LandmarkDto) => void;
+  onPress: () => void;
 }
 
-export const LandmarkCard: React.FC<ILandmarkCard> = ({landmark, pickedLandmark, onPressLandmark}) => {
+export const LandmarkCard: React.FC<ILandmarkCard> = ({
+  landmark,
+  onPress,
+}) => {
   return (
-    <Container picked={pickedLandmark?.id === landmark.id} onPress={() => onPressLandmark(landmark)}>
-      <Image source={{uri: landmark?.image_url }}/>
+    <Container onPress={onPress}>
+      <Image source={{ uri: landmark?.image_url }} />
     </Container>
   );
-}
+};
