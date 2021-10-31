@@ -3,7 +3,7 @@
 This project was developed using React-Native. 
 
 <p align="center">
-    <img alt ="homepage" src="https://github.com/helcioItiyama/Landmarks-List/blob/main/src/assets/LandmarksList.gif" />
+    <img alt ="homepage" src="https://github.com/helcioItiyama/Landmarks-List/blob/main/src/assets/LandmarksList.gif" height="500px"/>
 </p>
 
 ## :computer: TECHNOLOGIES USED FOR THIS PROJECT:
