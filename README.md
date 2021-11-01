@@ -8,7 +8,7 @@ This project was developed using React-Native.
 
 ## :computer: TECHNOLOGIES USED FOR THIS PROJECT:
 
-### Front-end
+### Mobile
 - [**expo**](https://github.com/expo/expo)
 - [**react-native**](https://github.com/facebook/react-native)
 - [**typescript**](https://github.com/microsoft/TypeScript)
